@@ -39,4 +39,4 @@ papersize = "a4paper"
 
 [bibliography]
 numeric = true #<- Set false for author-date format
-file = "bib/ref.tex"
+file = "bib/ref.bib"
