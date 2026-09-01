@@ -1,0 +1,13 @@
+\titleformat{\chapter}[block]
+    {\normalfont\bfseries\filright}
+    {\thechapter}
+    {0.3cm}
+    {\MakeUppercase}
+    [\vspace{0.3cm}\titlerule\vspace{0.5cm}]
+
+\titleformat{name=\chapter,numberless}[block]
+    {\normalfont\bfseries\filcenter}{}{0pt}
+    {\MakeUppercase}
+    [\vspace{0.3cm}\titlerule\vspace{0.5cm}]
+
+\RenewDocumentCommand{\part}{s o m}{}
