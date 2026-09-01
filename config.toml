@@ -1,0 +1,42 @@
+[data]
+title = "Título da Dissertação/tese"
+author = "Timóteo Fassoni"
+date = "Junho/2024"
+
+[[advisor]]
+name = "Silvio Ferreira"
+affiliation = "UFV"
+role = "Orientador"
+
+[[advisor]]
+name = "Wesley Cota"
+affiliation = "UFV"
+role = "Coorientador"
+
+[metadata]
+type = "thesis"
+degree = "master"
+graduate = "Física"
+university = "Universidade Federal de Viçosa"
+center = "Centro de Ciências Exatas"
+program = "Programa de Pós-Graduação em Física"
+
+[[board]]
+name = "Ciclana da Silva"
+affiliation = "USP"
+title = "Profa. Dra."
+role = "Membro Titular"
+
+[[board]]
+name = "Beltrano de Souza"
+affiliation = "UFV"
+title = "Prof. Dr."
+role = "Membro Suplente"
+
+[options.global]
+babel = "brazilian"
+papersize = "a4paper"
+
+[bibliography]
+numeric = true #<- Set false for author-date format
+file = "bib/ref.tex"
