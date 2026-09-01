@@ -1,0 +1,9 @@
+[options.textual]
+mainfont = "TeX Gyre Pagella"
+mathfont = "TeX Gyre Pagella Math"
+margin= "2.5cm"
+top=    "2.5cm"
+bottom= "2.5cm"
+
+[bibliography]
+format = "comp"

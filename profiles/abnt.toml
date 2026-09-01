@@ -1,0 +1,10 @@
+[options.textual]
+mainfont = "Arial"
+mathfont = "Latin Modern Math"
+left =   "3cm"
+top =    "3cm"
+right =  "2cm"
+bottom = "2cm"
+
+[bibliography]
+format = "abnt"
