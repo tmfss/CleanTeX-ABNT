@@ -2,6 +2,7 @@
 title = "Título da Dissertação/tese"
 author = "Timóteo Fassoni"
 date = "Junho/2024"
+address = "Viçosa, Minas Gerais"
 
 [[advisor]]
 name = "Silvio Ferreira"
@@ -14,12 +15,14 @@ affiliation = "UFV"
 role = "Coorientador"
 
 [metadata]
-type = "thesis"
-degree = "master"
+type = "Dissertação"
+degree = "Mestre em Física"
 graduate = "Física"
 university = "Universidade Federal de Viçosa"
+affiliation = "UFV"
 center = "Centro de Ciências Exatas"
 program = "Programa de Pós-Graduação em Física"
+edital = ""
 
 [[board]]
 name = "Ciclana da Silva"
