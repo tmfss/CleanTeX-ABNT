@@ -47,3 +47,13 @@
 \author{\directlua{tex.sprint(project.data.author)}}
 
 \usepackage{cleveref}
+
+\newcommand{\MakeSignatures}{
+    \directlua{GenerateSignatures()}
+}
+\newcommand{\MakeNames}{
+    \directlua{GenerateNames()}
+}
+\newcommand{\MakePresentation}{
+    \directlua{GeneratePresentation()}
+}
