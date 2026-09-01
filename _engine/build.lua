@@ -41,7 +41,7 @@ end
 -- 2.a Transform config.toml to project lua table
 project = toml.parse(user_config_content)
 -- 2.b Read the profile.toml
-local profile_path = "profiles/" .. profile_name .. ".toml"
+local profile_path = profile_name .. ".toml"
 local profile_content = read_file(profile_path)
 if profile_content then
     local profile_data = toml.parse(profile_content) -- Transform profil.toml to profile_data project lua table
@@ -51,5 +51,85 @@ if profile_content then
 else
     if tex then 
         tex.print("\\textbf{Aviso: Perfil " .. profile_name .. ".toml não encontrado!}") 
+    end
+end
+is_ptbr = (project.options.global.babel == "brazilian")
+
+if is_ptbr then
+    aproval = "APROVADO:"
+    assent = "ASSENTIMENTO:"
+else
+    aproval = "APPROVED:"
+    assent = "ASSENT:"
+end
+
+function GenerateSignatures()
+    -- Função auxiliar que cospe o LaTeX de uma única linha de assinatura
+    local function print_person(person)
+        -- Fallbacks de segurança: se o usuário esqueceu de preencher algo no TOML
+        local title = person.title and (person.title .. " ") or ""
+        local name = person.name or "Nome não definido"
+        local role = person.role or "Membro"
+        local affil = person.affiliation and (" -- " .. person.affiliation) or ""
+
+        -- Injeta os comandos LaTeX na memória
+        tex.print("\\vspace{1.2cm}")
+        tex.print("\\begin{center}")
+        tex.print("\\rule{10cm}{0.5pt} \\\\")
+        tex.print("\\textbf{" .. title .. name .. "} \\\\")
+        tex.print(role .. affil)
+        tex.print("\\end{center}")
+    end
+
+    -- 1. Imprime o(s) Orientador(es)
+    if project.advisor then
+        for _, person in ipairs(project.advisor) do
+            print_person(person)
+        end
+    end
+
+    -- 2. Imprime o(s) Coorientador(es)
+    if project.coadvisor then
+        for _, person in ipairs(project.coadvisor) do
+            print_person(person)
+        end
+    end
+
+    -- 3. Imprime os Membros da Banca
+    if project.board then
+        for _, person in ipairs(project.board) do
+            print_person(person)
+        end
+    end
+end
+
+function GenerateNames()
+    local function print_person(person)
+        local name = person.name or "Nome não definido"
+        local role = person.role or "Orientador"
+
+        tex.print("\\textbf{" .. role .. ":} " ..name .. "\\\\")
+    end
+    if project.advisor then
+        for _, person in ipairs(project.advisor) do
+            print_person(person)
+        end
+    end
+end
+
+function GeneratePresentation()
+    local doc_type = project.metadata.type or "Thesis"
+    local degree = project.metadata.degree or "Mestre"
+    local university = project.metadata.university or "Universidade Não Definida"
+    local edital = project.metadata.edital or "[Edital não preenchido]"
+
+    if is_ptbr then
+        if doc_type == "relatório" or doc_type == "relatorio" then
+            tex.sprint("Relatório apresentado à " .. university .. " como parte do cumprimento das exigências do edital " .. edital .. ".")
+        else 
+            tex.sprint(doc_type .. " apresentada à " .. university .. " como parte das exigências para obtenção do título de " .. degree .. ".")
+        end
+    else
+        tex.sprint(doc_type .. " submitted to " .. university .. " as part of the requirements to obtain the degree of " .. degree .. ".")
     end
 end
