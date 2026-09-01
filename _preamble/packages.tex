@@ -1,13 +1,13 @@
 % --- PACOTES ---
 %> Pacotes essenciais
+\usepackage{fontspec}
+\usepackage{unicode-math}
+\usepackage[\directlua{tex.sprint(project.options.global.babel)}]{babel}
 \usepackage{graphicx}
 \usepackage{indentfirst}
-\usepackage{fontspec}
-\usepackage[brazilian]{babel}
 
 %> Pacotes de estilo
 \usepackage{titlesec}
-\usepackage{multicol}
 \usepackage{epigraph}
 \usepackage{caption}
 \usepackage{microtype}
@@ -16,21 +16,9 @@
 \usepackage{enumitem}
 \usepackage{array}
 \renewcommand{\arraystretch}{1.6}
-\usepackage[svgnames]{xcolor}
 \usepackage{pdfpages} %> Necessário para adicionar páginas em pdf (registro, etc...)
-\usepackage{fancyhdr}
-\setlength{\headheight}{14.5pt}
-%\usepackage{markdown} %> Para escrever linhas de código
 
 %> Pacotes matemáticos
 \usepackage{amsmath}
-
 %> Configurações das páginas
 \pagestyle{plain}
-
-%> Gerador de blá blá blá
-\newcommand{\blablabla}[1][1]{%
-  \foreach \n in {1,...,#1}{%
-    Neste parágrafo vamos simular um texto em português para testar a tipografia, o espaçamento, a hifenização e a formatação geral do documento. Como estamos desenvolvendo um modelo robusto para a Universidade Federal de Viçosa (UFV), é importante que as margens sejam testadas com palavras reais da nossa língua, contendo acentuações, cedilhas e construções frasais típicas do nosso idioma. Dessa forma, garantimos que o código do template funcione perfeitamente, sem depender de pacotes externos ou línguas mortas. \par\vspace{0.2cm}%
-  }%
-}
