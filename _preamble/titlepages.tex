@@ -1,0 +1,126 @@
+\begin{titlepage}
+\noindent\begin{minipage}[t][6cm][t]{\textwidth}
+    \begin{center}
+        \directlua{tex.sprint(project.metadata.university)}\\
+        \directlua{tex.sprint(project.metadata.center)}\\
+        \directlua{tex.sprint(project.metadata.program)}\\
+        \vspace{2cm}
+
+        {\large \textbf{\directlua{tex.sprint(project.data.author)}}}
+    \end{center}
+\end{minipage}
+
+\vspace*{\fill}
+\begin{center}
+    \rule{0.4\linewidth}{0.8pt}\vspace{0.4cm}\par
+    {\bfseries\Large \directlua{tex.sprint(project.data.title)} \par}
+    \vspace{0.3cm}\rule{0.4\linewidth}{0.8pt}\par
+\end{center}
+\vspace*{\fill}
+
+\noindent\begin{minipage}[b][6cm][b]{\textwidth}
+    \begin{center}
+        \directlua{tex.sprint(project.data.address)}
+    \end{center}
+\end{minipage}
+\end{titlepage}
+
+\cleardoublepage
+\begin{titlepage}
+\noindent\begin{minipage}[t][9cm][t]{\textwidth}
+    \begin{center}
+        {\large \textbf{\directlua{tex.sprint(project.data.author)}}}
+    \end{center}
+\end{minipage}
+
+\vspace*{\fill}
+\begin{center}
+    \rule{0.4\linewidth}{0.8pt}\vspace{0.4cm}\par
+    {\bfseries\Large \directlua{tex.sprint(project.data.title)} \par}
+    \vspace{0.3cm}\rule{0.4\linewidth}{0.8pt}\par
+\end{center}
+\vspace*{\fill}
+
+\noindent\begin{minipage}[b][9cm][b]{\textwidth}
+    \hfill
+    \begin{minipage}[c][3cm][c]{8cm}
+    \small{
+    \MakePresentation
+    \vspace{0.5cm}}
+
+    \textbf{Orientado:} \directlua{tex.sprint(project.data.author)}\\
+    \MakeNames
+    \end{minipage}
+    \vspace*{\fill}
+    \begin{center}
+        \directlua{tex.sprint(project.data.address)}
+    \end{center}
+\end{minipage}
+\end{titlepage}
+
+\begin{titlepage}
+    \noindent\begin{minipage}[t][3cm][t]{\textwidth}
+    \begin{center}
+        {\large \textbf{\directlua{tex.sprint(project.data.author)}}\
+        \vspace{1.5cm}
+
+        \textbf{\directlua{tex.sprint(project.data.title)}}}
+    \end{center}
+    \end{minipage}
+
+    \hfill
+    \begin{minipage}[c][3cm][c]{8cm}
+    \small{
+    \MakePresentation
+    \vspace{0.5cm}}
+    \end{minipage}
+
+    \vspace{0.3cm}
+
+    \noindent\textbf{\directlua{tex.sprint(aproval)}}
+    \vspace*{\fill}
+    \MakeSignatures
+\end{titlepage}
+
+\begin{titlepage}
+    \noindent\begin{minipage}[t][3cm][t]{\textwidth}
+    \begin{center}
+        {\large \textbf{\directlua{tex.sprint(project.data.author)}}\
+        \vspace{1.5cm}
+
+        \textbf{\directlua{tex.sprint(project.data.title)}}}
+    \end{center}
+    \end{minipage}
+
+    \vspace{1.2cm}
+
+    \hfill
+    \begin{minipage}[c][3cm][c]{8cm}
+    \small{
+    \MakePresentation
+    \vspace{0.5cm}}
+    \end{minipage}
+    
+    \vspace{0.3cm}
+
+    \noindent\textbf{\directlua{tex.sprint(aproval)}}\\
+    \vspace{1.2cm}
+
+    \noindent\textbf{\directlua{tex.sprint(assent)}}\\
+    \vspace*{\fill}
+    
+    \begin{center}
+    \vspace{1.2cm}
+    \rule{10cm}{0.5pt}\\
+    \textbf{\directlua{tex.sprint(project.data.author)}}\\
+    Orientado --- \directlua{tex.sprint(project.metadata.affiliation)}
+    \end{center}
+
+    \begin{center}
+    \vspace{1.2cm}
+    \rule{10cm}{0.5pt}\\
+    \textbf{\directlua{tex.sprint(project.advisor[1].name)}}\\
+    \directlua{tex.sprint(project.advisor[1].role)} --- \directlua{tex.sprint(project.advisor[1].affiliation)}
+
+    \end{center}
+\end{titlepage}
