@@ -1,6 +1,10 @@
 # CleanTeX-UFV
 
-Um template LaTeX modular, limpo e à prova de dores de cabeça (*idiot-proof*), configurado para atender às normas da Universidade Federal de Viçosa (UFV), mas flexível para formatação *fancy*.
+Nota: a v1.3.0 é a última escrita interamente em TeX. O projeto está passando por uma reformulação para usar a linguagem toml ao lado de Lua a fim de trazer mais rapidez à compilação, facilidade de uso e, mais importante, sair do design padrão do LaTeX para algo mais moderno. Daí, também, a mudança de nome: `-UFV` $\to$ `-ABNT`, visando atender qualquer documento de dissertação/tese nas normas brasileiras.
+
+---
+
+Um template LaTeX modular, limpo e à prova de dores de cabeça (*idiot-proof*), configurado para atender às normas da Universidade Federal de Viçosa (UFV), mas flexível para formatação *fancy* (padrão internacional).
 
 A ideia é conferir liberdade para produzir um documento livre destas normas, mas sem comprometer o trabalho final, imprimindo o documento compatível com todas as exigências da UFV.
 
@@ -11,18 +15,15 @@ Para usar o template, baixe o [arquivo zip](https://github.com/timotheosf/CleanT
 git clone https://github.com/timotheosf/CleanTeX-UFV.git
 ```
 
-**Importante:** O template não tem e nem terá suporte para uso no Overleaf. É uma plataforma lenta e contrária à filosofia *Open-Source*.
+**Importante:** O template não tem e nem terá suporte para uso no Overleaf.
 
 A compilação do template deve ser feita com a ferramenta [`latexmk`](https://mgeier.github.io/latexmk.html); basta rodar no terminal:
 ```bash
 latexmk main.tex
 ```
-Caso você utilize algum editor com compilador built-in, configure-o para utilizar apenas o comando `latexmk`. Os arquivos auxiliares da compilação ficam escondidos na pasta `build/`, mantendo a raiz do projeto limpa.
+Caso você utilize algum editor com compilador built-in, configure-o para utilizar apenas o comando `latexmk`. Os arquivos auxiliares ficam escondidos na pasta `build/`, mantendo a raiz do projeto limpa. O projeto já contém um arquivo `.latexmkrc` em sua raiz para configuração do compilador.
 
-Vale dizer que a engine do template  é o [LuaLaTeX](https://www.luatex.org/), tendo suporte à utilização moderna de fontes; confira as [opções](https://jmn.pl/en/tex-gyre/). Para processar corretamente as referências, é necessário ter o [Biber](https://github.com/plk/biber) instalado.
-
-
-**Nota:* o projeto já contém um arquivo `.latexmkrc` em sua raiz para configuração do compilador.
+Vale dizer que a engine do template  é o [LuaLaTeX](https://www.luatex.org/), tendo suporte à utilização moderna de fontes; confira algumas [opções](https://jmn.pl/en/tex-gyre/). Para processar corretamente as referências, é necessário ter o [Biber](https://github.com/plk/biber) instalado.
 
 
 **Manual de uso rápido** (conferir a [árvore de diretórios](https://github.com/timotheosf/CleanTeX-UFV#-%C3%A1rvore-de-diret%C3%B3rios)):
