@@ -38,5 +38,4 @@ babel = "brazilian"
 papersize = "a4paper"
 
 [bibliography]
-numeric = true #<- Set false for author-date format
 file = "bib/ref.bib"
