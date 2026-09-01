@@ -1,27 +1,25 @@
-\documentclass[oneside, a4paper, 12pt]{book} % Retire a opção `oneside` para impressão
-
-%> Importa o arquivo de formatação e macros do template
-\input{_preamble/config}
-
-%> Importa o arquivo de metadados e configurações globais do documento (necessário preenchê-lo)
-\input{_setup}
-
-% Faz o build do template (função macro em _preamble/config)
-\BuildTemplateSetup %<-- NÃO COMENTAR/APAGAR ESTA LINHA
+\documentclass[oneside, 12pt]{book}
+\input{_engine/build.tex}
 
 \begin{document}
 
-%> Faz o build das páginas pré-textuais
-\BuildPretextual %<-- NÃO COMENTAR/APAGAR ESTA LINHA
+\chapter{Teste Oficial do Motor CleanTeX-ABNT}
 
-%> O texto vem aqui:
-\input{lero_lero}
+\providecommand{\CleanTeXprofile}{Não definido via terminal}
 
-%>Bibliogafia
-\input{_bibliography/bib}
+O perfil injetado pelo terminal é: \textbf{\CleanTeXprofile}, com fonte \directlua{tex.print(project.options.textual.mainfont)}
 
-%> Apêndices
-%\appendix
-%\input{appendix/appendix_name}
+\subsection*{Dados Lidos do TOML pelo Lua:}
 
+\begin{itemize}
+    \item \textbf{Título:} \directlua{tex.print(project.data.title)}
+    \item \textbf{Autor:} \directlua{tex.print(project.data.author)}
+    \item \textbf{Universidade:} \directlua{tex.print(project.metadata.university)}
+    \item \textbf{Programa:} \directlua{tex.print(project.metadata.program)}
+    \item \textbf{Orientador:} \directlua{tex.print(project.advisor[1].name)}
+    \item \textbf{1º Membro da Banca:} \directlua{tex.print(project.board[1].title)} \directlua{tex.print(project.board[1].name)}
+\end{itemize}
+
+\nocite{*}
+\input{bib/insert.tex}
 \end{document}
