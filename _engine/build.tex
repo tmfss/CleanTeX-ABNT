@@ -1,0 +1,49 @@
+% -- Load build.lua before loading packages -- %
+\directlua{dofile("_engine/build.lua")}
+\input{_preamble/packages.tex}
+
+\input{\directlua{tex.sprint('_preamble/' .. profile_name)}}
+
+\usepackage[
+    \directlua{tex.sprint(project.options.global.papersize)},
+    left=\directlua{tex.sprint(project.options.textual.left)},
+    top=\directlua{tex.sprint(project.options.textual.top)},
+    right=\directlua{tex.sprint(project.options.textual.right)},
+    bottom=\directlua{tex.sprint(project.options.textual.bottom)}
+]{geometry}
+
+\setmainfont{\directlua{tex.sprint(project.options.textual.mainfont)}}
+\setsansfont{\directlua{tex.sprint(project.options.textual.mainfont)}}
+\setmathfont{\directlua{tex.sprint(project.options.textual.mathfont)}}
+
+\usepackage[
+    style=\directlua{tex.sprint(project.bibliography.style)},
+    backend=biber,
+    sorting=none,
+    giveninits=true,
+    uniquelist=false,
+    uniquename=false,
+    natbib=true,
+    maxcitenames=1,
+    mincitenames=1
+]{biblatex}
+\addbibresource{\directlua{tex.sprint(project.bibliography.file)}}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=\directlua{tex.sprint(project.hyper.setup.colorlinks)},
+    linkcolor=\directlua{tex.sprint(project.hyper.setup.linkcolor)},
+    urlcolor=\directlua{tex.sprint(project.hyper.setup.urlcolor)},
+    citecolor=\directlua{tex.sprint(project.hyper.setup.citecolor)},
+    pdfhighlight=\directlua{tex.sprint(project.hyper.setup.pdfhighlight)}
+}
+   
+\hypersetup{
+    pdftitle={\directlua{tex.sprint(project.data.title)}},
+    pdfauthor={\directlua{tex.sprint(project.data.author)}}
+}
+
+\title{\directlua{tex.sprint(project.data.title)}}
+\author{\directlua{tex.sprint(project.data.author)}}
+
+\usepackage{cleveref}

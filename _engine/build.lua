@@ -28,7 +28,7 @@ if not user_config_content then
     return
 end
 -- 1.b Get the used profile
-local profile_name = "default"
+profile_name = "default"
     -- If we're tex, then profile_name is the CleanTeXprofile macro
 if token and token.get_macro then
     local p = token.get_macro("CleanTeXprofile")
