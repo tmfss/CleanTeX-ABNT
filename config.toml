@@ -62,6 +62,9 @@ foreign.name = "Abstract"
 foreign.keywords = ["Keyword 1", "Keyword 2", "Keyword 3"]
 foreign.keyword = "Keyword"
 
+[backmatter]
+bibliography = true
+
 [bibliography]
 file = "bib/ref.bib"
 nocite = true
