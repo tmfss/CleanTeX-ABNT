@@ -1,0 +1,3 @@
+[acronyms]
+gisc = { short = "GISC", long = "Grupo de Investigação de Sistemas Complexos" }
+ufv  = { short = "UFV",  long = "Universidade Federal de Viçosa" }

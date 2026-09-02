@@ -1,0 +1,3 @@
+[symbols]
+prob = { name = '$\mathrm{P}$', description = 'Probabilidade' }
+cdf  = { name = '$\mathrm{P}\big[x\leq X^\text{r}\big]$', description = 'Distribuição acumulativa de probabilidade' }
