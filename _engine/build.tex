@@ -44,6 +44,14 @@
 \title{\directlua{tex.sprint(doc_title)}}
 \author{\directlua{tex.sprint(doc_author)}}
 
+\directlua{UseGlossary()}
+\catcode`\|=13
+\def|#1|{\gls{#1}}
+
+\directlua{GenerateGlossaryMap("acronyms")}
+\directlua{GenerateGlossaryMap("symbols")}
+
+
 \usepackage{cleveref}
 
 \newcommand{\MakeFrontMatter}{

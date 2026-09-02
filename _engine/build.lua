@@ -36,11 +36,17 @@ if token and token.get_macro then
         profile_name = p
     end
 end
-
+-- 1.c Read the glossary.toml configurations
+local subglossary_symbols = read_file("frontmatter/glossary_symbols.toml")
+local subglossary_acronyms = read_file("frontmatter/glossary_acronyms.toml")
 
 -- 2.a Transform config.toml to project lua table
 project = toml.parse(user_config_content)
--- 2.b Read the profile.toml
+-- 2.b Transform the glossaries tomls to tables in lua
+local sub_glossary_symbols_table = toml.parse(subglossary_symbols)
+local sub_glossary_acronyms_table = toml.parse(subglossary_acronyms)
+glossary = merge_tables( sub_glossary_symbols_table, sub_glossary_acronyms_table )
+-- 2.c Read the profile.toml
 if profile_name~="default" and profile_name~="abnt" then
 local profile_path = profile_name .. ".toml"
 local profile_content = read_file(profile_path)
@@ -57,6 +63,17 @@ end
 
 if project.data.compile2abnt then
     profile_name = "abnt"
+end
+
+if not project.frontmatter.numbering then
+    tex.print([[\makeatletter]])
+    tex.print([[\renewcommand{\frontmatter}{%
+        \cleardoublepage\@mainmatterfalse\pagenumbering{roman}\pagestyle{empty}%
+    }]])
+    tex.print([[\renewcommand{\mainmatter}{%
+        \cleardoublepage\@mainmattertrue\pagenumbering{arabic}\pagestyle{plain}%
+    }]])
+    tex.print([[\makeatother]])
 end
 
 function SetFont()
@@ -94,11 +111,11 @@ else
     doc_right = project.options.textual.right or "2.5cm"
     doc_bottom = project.options.textual.bottom or "2.5cm"
     doc_bibstyle = project.bibliography.style or "numeric-comp"
-    doc_colorlinks = project.hyper.setup or "true"
-    doc_linkcolor = project.hyper.setup or "blue"
-    doc_urlcolor = project.hyper.setup or "blue"
-    doc_citecolor = project.hyper.setup or "blue"
-    doc_pdfhighlight = project.hyper.setup or "/N"
+    doc_colorlinks = project.hyper.setup.colorlinks or "true"
+    doc_linkcolor = project.hyper.setup.linkcolor or "blue"
+    doc_urlcolor = project.hyper.setup.urlcolor or "blue"
+    doc_citecolor = project.hyper.setup.citecolor or "blue"
+    doc_pdfhighlight = project.hyper.setup.pdfhighlight or "/N"
 end
 
 function GenerateSignatures()
@@ -457,6 +474,37 @@ function GenerateAbstractNative()
     end
 end
 
+function GenerateGlossaryMap(gloss)
+    if not glossary then return end
+
+    if gloss == "acronyms" and glossary.acronyms then
+        for label, acr in pairs(glossary.acronyms) do
+            if acr.short and acr.long then
+                -- \newacronym{sus}{SUS}{Sistema Único de Saúde}
+                local tex_cmd = string.format("\\newacronym{%s}{%s}{%s}", label, acr.short, acr.long)
+                tex.sprint(tex_cmd)
+            end
+        end
+
+    elseif gloss == "symbols" and glossary.symbols then
+        for label, sym in pairs(glossary.symbols) do
+            if sym.name and sym.description then
+                local tex_cmd = string.format("\\newglossaryentry{%s}{name={%s}, description={%s}}", 
+                    label, sym.name, sym.description)
+                tex.sprint(tex_cmd)
+            end
+        end
+    end
+end
+
+function UseGlossary()
+    if not glossary then return end
+    tex.print("\\usepackage[symbols, acronym, nonumberlist]{glossaries}")
+    if project.frontmatter.listof.acronym or project.frontmatter.listof.symbols then
+        tex.print("\\makeglossaries")
+    end
+end
+
 function GenerateFrontMatter()
     GenerateTitlePage()
     GenerateCoverPage()
@@ -474,13 +522,14 @@ function GenerateFrontMatter()
         tex.sprint("\\listoftables")
     end
     if project.frontmatter.listof.acronym then
-        tex.sprint("\\printglossary[type=\acronymtype]")
+        if project.frontmatter.glossary.acronyms.nocite then tex.sprint("\\glsaddall[types=\\acronymtype]") end
+        tex.sprint("\\printglossary[type=\\acronymtype, title={Lista de Siglas}]")
     end
     if project.frontmatter.listof.symbols then
-        tex.sprint("\\printglossary[type=symbols]")
+        if project.frontmatter.glossary.symbols.nocite then tex.sprint("\\glsaddall[types=main]") end
+        tex.sprint("\\printglossary[title={Lista de Símbolos}]")
     end
     if project.frontmatter.toc then
         tex.sprint("\\tableofcontents")
-        tex.sprint("\\thispagestyle{empty}")
     end
 end
