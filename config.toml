@@ -36,6 +36,7 @@ title = "Prof. Dr."
 role = "Membro Suplente"
 
 [frontmatter]
+numbering = true #<-- false para não enumerar páginas!
 titlepage = true
 coverpage = true
 approvalpage = true
@@ -47,9 +48,11 @@ abstract.native = true
 abstract.foreign = true
 listof.figures = false
 listof.tables = false
-listof.acronym = false
-listof.symbols = false
+listof.acronym = true
+listof.symbols = true
 toc = true # (Table of Contents)
+glossary.symbols.nocite = true
+glossary.acronyms.nocite = true
 
 [abstract]
 native.name = "Resumo"
@@ -61,6 +64,7 @@ foreign.keyword = "Keyword"
 
 [bibliography]
 file = "bib/ref.bib"
+nocite = true
 style = "numeric-comp"
 abnt = "abnt-numeric"
 
