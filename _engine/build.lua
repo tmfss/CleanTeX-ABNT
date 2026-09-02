@@ -481,5 +481,6 @@ function GenerateFrontMatter()
     end
     if project.frontmatter.toc then
         tex.sprint("\\tableofcontents")
+        tex.sprint("\\thispagestyle{empty}")
     end
 end
