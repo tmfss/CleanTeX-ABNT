@@ -5,17 +5,17 @@
 \input{\directlua{tex.sprint('_preamble/' .. profile_name)}}
 
 \usepackage[
-    \directlua{tex.sprint(project.options.global.papersize)},
-    left=\directlua{tex.sprint(project.options.textual.left)},
-    top=\directlua{tex.sprint(project.options.textual.top)},
-    right=\directlua{tex.sprint(project.options.textual.right)},
-    bottom=\directlua{tex.sprint(project.options.textual.bottom)}
+    \directlua{tex.sprint(doc_papersize)},
+    left=\directlua{tex.sprint(doc_left)},
+    top=\directlua{tex.sprint(doc_top)},
+    right=\directlua{tex.sprint(doc_right)},
+    bottom=\directlua{tex.sprint(doc_bottom)}
 ]{geometry}
 
 \directlua{SetFont()}
 
 \usepackage[
-    style=\directlua{tex.sprint(project.bibliography.style)},
+    style=\directlua{tex.sprint(doc_bibstyle)},
     backend=biber,
     sorting=none,
     giveninits=true,
@@ -29,20 +29,20 @@
 
 \usepackage{hyperref}
 \hypersetup{
-    colorlinks=\directlua{tex.sprint(project.hyper.setup.colorlinks)},
-    linkcolor=\directlua{tex.sprint(project.hyper.setup.linkcolor)},
-    urlcolor=\directlua{tex.sprint(project.hyper.setup.urlcolor)},
-    citecolor=\directlua{tex.sprint(project.hyper.setup.citecolor)},
-    pdfhighlight=\directlua{tex.sprint(project.hyper.setup.pdfhighlight)}
+    colorlinks=\directlua{tex.sprint(doc_colorlinks)},
+    linkcolor=\directlua{tex.sprint(doc_linkcolor)},
+    urlcolor=\directlua{tex.sprint(doc_urlcolor)},
+    citecolor=\directlua{tex.sprint(doc_citecolor)},
+    pdfhighlight=\directlua{tex.sprint(doc_pdfhighlight)}
 }
    
 \hypersetup{
-    pdftitle={\directlua{tex.sprint(project.data.title)}},
-    pdfauthor={\directlua{tex.sprint(project.data.author)}}
+    pdftitle={\directlua{tex.sprint(doc_title)}},
+    pdfauthor={\directlua{tex.sprint(doc_author)}}
 }
 
-\title{\directlua{tex.sprint(project.data.title)}}
-\author{\directlua{tex.sprint(project.data.author)}}
+\title{\directlua{tex.sprint(doc_title)}}
+\author{\directlua{tex.sprint(doc_author)}}
 
 \usepackage{cleveref}
 
