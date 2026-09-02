@@ -11,3 +11,9 @@
     [\vspace{0.3cm}\titlerule]
 
 \RenewDocumentCommand{\part}{s o m}{}
+
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyhead[R]{\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+}
