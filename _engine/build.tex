@@ -12,9 +12,7 @@
     bottom=\directlua{tex.sprint(project.options.textual.bottom)}
 ]{geometry}
 
-\setmainfont{\directlua{tex.sprint(project.options.textual.mainfont)}}
-\setsansfont{\directlua{tex.sprint(project.options.textual.mainfont)}}
-\setmathfont{\directlua{tex.sprint(project.options.textual.mathfont)}}
+\directlua{SetFont()}
 
 \usepackage[
     style=\directlua{tex.sprint(project.bibliography.style)},
@@ -48,12 +46,6 @@
 
 \usepackage{cleveref}
 
-\newcommand{\MakeSignatures}{
-    \directlua{GenerateSignatures()}
-}
-\newcommand{\MakeNames}{
-    \directlua{GenerateNames()}
-}
-\newcommand{\MakePresentation}{
-    \directlua{GeneratePresentation()}
+\newcommand{\MakeFrontMatter}{
+    \directlua{GenerateFrontMatter()}
 }
