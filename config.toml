@@ -3,6 +3,15 @@ title = "Título da Dissertação/tese"
 author = "Timóteo Fassoni"
 date = "Fevereiro/2026"
 address = "Viçosa, Minas Gerais"
+type = "Dissertação"
+degree = "Mestre em Física"
+graduate = "Física"
+university = "Universidade Federal de Viçosa"
+affiliation = "UFV"
+center = "Centro de Ciências Exatas"
+program = "Programa de Pós-Graduação em Física"
+edital = ""
+compile2abnt = false
 
 [[advisor]]
 name = "Silvio Ferreira"
@@ -13,16 +22,6 @@ role = "Orientador"
 name = "Wesley Cota"
 affiliation = "UFV"
 role = "Coorientador"
-
-[metadata]
-type = "Dissertação"
-degree = "Mestre em Física"
-graduate = "Física"
-university = "Universidade Federal de Viçosa"
-affiliation = "UFV"
-center = "Centro de Ciências Exatas"
-program = "Programa de Pós-Graduação em Física"
-edital = ""
 
 [[board]]
 name = "Ciclana da Silva"
@@ -60,9 +59,26 @@ foreign.name = "Abstract"
 foreign.keywords = ["Keyword 1", "Keyword 2", "Keyword 3"]
 foreign.keyword = "Keyword"
 
+[bibliography]
+file = "bib/ref.bib"
+style = "numeric-comp"
+abnt = "abnt-numeric"
+
+[hyper.setup]
+colorlinks = "true"
+linkcolor = "blue"
+urlcolor = "blue"
+citecolor = "blue"
+pdfhighlight = "/N"
+
 [options.global]
 babel = "brazilian"
 papersize = "a4paper"
 
-[bibliography]
-file = "bib/ref.bib"
+[options.textual]
+mainfont = "TeX Gyre Pagella"
+mathfont = "TeX Gyre Pagella Math"
+left =   "2.5cm"
+top =    "2.5cm"
+right =  "2.5cm"
+bottom = "2.5cm"
