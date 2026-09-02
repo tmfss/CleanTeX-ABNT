@@ -1,7 +1,7 @@
 [data]
 title = "Título da Dissertação/tese"
 author = "Timóteo Fassoni"
-date = "Junho/2024"
+date = "Fevereiro/2026"
 address = "Viçosa, Minas Gerais"
 
 [[advisor]]
@@ -35,6 +35,30 @@ name = "Beltrano de Souza"
 affiliation = "UFV"
 title = "Prof. Dr."
 role = "Membro Suplente"
+
+[frontmatter]
+titlepage = true
+coverpage = true
+approvalpage = true
+assentpage = true
+dedication = true
+acknowledgments = true
+epigraph = true
+abstract.native = true
+abstract.foreign = true
+listof.figures = false
+listof.tables = false
+listof.acronym = false
+listof.symbols = false
+toc = true # (Table of Contents)
+
+[abstract]
+native.name = "Resumo"
+native.keyword = "Palavra-chave"
+native.keywords = ["Palavra-chave 1", "Palavra-chave 2", "Palavra-chave 3"]
+foreign.name = "Abstract"
+foreign.keywords = ["Keyword 1", "Keyword 2", "Keyword 3"]
+foreign.keyword = "Keyword"
 
 [options.global]
 babel = "brazilian"
