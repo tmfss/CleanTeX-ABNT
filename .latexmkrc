@@ -28,3 +28,13 @@ $out_dir = '.';
 
 # 5. Inject profile var into LuaLaTeX enviroment to load the correct profile.toml in lua
 $lualatex = 'lualatex -interaction=nonstopmode -synctex=1 -shell-escape %O "\def\CleanTeXprofile{'.$profile.'}\input{%S}"';
+
+add_cus_dep('glo', 'gls', 0, 'run_makeglossaries');
+add_cus_dep('acn', 'acr', 0, 'run_makeglossaries');
+
+sub run_makeglossaries {
+    my ($base_name, $path) = fileparse( $_[0] );
+    my $dir = $aux_dir;
+    if ( $dir eq '' ) { $dir = '.'; }
+    system("makeglossaries -d '$dir' '$base_name'");
+}
