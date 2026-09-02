@@ -1,27 +1,32 @@
 \documentclass[oneside, 12pt]{book}
 \input{_engine/build.tex}
 
+%   --- FRONTMATTER ---
+%   Title page
+%   Cover page
+%   Board aproval
+%   Assent
+%   Dedication (optional)
+%   Acknowledgments (optional)
+%   Abstract - Native Language
+%   Abstract - Foreign Language
+%   TOC
+%   ---
+
 \begin{document}
 
-\input{_preamble/titlepages.tex}
+\frontmatter
+\MakeFrontMatter
+\mainmatter
 
-\chapter{Teste Oficial do Motor CleanTeX-ABNT}
+\chapter{Introdução}
 
 \providecommand{\CleanTeXprofile}{Não definido via terminal}
 
-O perfil injetado pelo terminal é: \textbf{\CleanTeXprofile}, com fonte \directlua{tex.print(project.options.textual.mainfont)}
+Pelo visto, agora o \verb|\MakeFrontMatter| está funcionando legal\dots
 
-\subsection*{Dados Lidos do TOML pelo Lua:}
-
-\begin{itemize}
-    \item \textbf{Título:} \directlua{tex.print(project.data.title)}
-    \item \textbf{Autor:} \directlua{tex.print(project.data.author)}
-    \item \textbf{Universidade:} \directlua{tex.print(project.metadata.university)}
-    \item \textbf{Programa:} \directlua{tex.print(project.metadata.program)}
-    \item \textbf{Orientador:} \directlua{tex.print(project.advisor[1].name)}
-    \item \textbf{1º Membro da Banca:} \directlua{tex.print(project.board[1].title)} \directlua{tex.print(project.board[1].name)}
-\end{itemize}
-
+\backmatter
 \nocite{*}
-\input{bib/insert.tex}
+\chapter{Referências}
+\printbibliography[heading=none]
 \end{document}
