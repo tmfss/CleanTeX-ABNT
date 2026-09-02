@@ -29,7 +29,7 @@ if not user_config_content then
 end
 -- 1.b Get the used profile
 profile_name = "default"
-    -- If we're tex, then profile_name is the CleanTeXprofile macro
+-- If we're tex, then profile_name is the CleanTeXprofile macro
 if token and token.get_macro then
     local p = token.get_macro("CleanTeXprofile")
     if p and p ~= "" then
@@ -41,11 +41,11 @@ end
 -- 2.a Transform config.toml to project lua table
 project = toml.parse(user_config_content)
 -- 2.b Read the profile.toml
+if profile_name~="default" and profile_name~="abnt" then
 local profile_path = profile_name .. ".toml"
 local profile_content = read_file(profile_path)
 if profile_content then
-    local profile_data = toml.parse(profile_content) -- Transform profil.toml to profile_data project lua table
-    
+    local profile_data = toml.parse(profile_content) -- Transform profile.toml to profile_data project lua table  
     -- 3. Merge the two tables: profile overwrites config, if needed
     project = merge_tables(project, profile_data)
 else
@@ -53,17 +53,52 @@ else
         tex.print("\\textbf{Aviso: Perfil " .. profile_name .. ".toml não encontrado!}") 
     end
 end
+end
+
+if project.data.compile2abnt then
+    profile_name = "abnt"
+end
 
 function SetFont()
     if profile_name == "abnt" then
         tex.print("\\usepackage{setspace}")
         tex.print("\\onehalfspacing")
+        tex.print("\\setmainfont{Tex Gyre Heros}")
+        tex.print("\\setsansfont{Tex Gyre Heros}")
+        tex.print("\\setmathfont{Latin Modern Math}")
+    else
+        local mainfont = project.options.textual.mainfont or "TeX Gyre Pagella"
+        local mathfont = project.options.textual.mathfont or "TeX Gyre Pagella Math"
+        tex.print("\\setmainfont{" .. mainfont .. "}")
+        tex.print("\\setsansfont{" .. mainfont .. "}")
+        tex.print("\\setmathfont{" .. mathfont .. "}")
     end
-    local mainfont = project.options.textual.mainfont or "TeX Gyre Pagella"
-    local mathfont = project.options.textual.mathfont or "TeX Gyre Pagella Math"
-    tex.sprint("\\setmainfont{" .. mainfont .. "}")
-    tex.sprint("\\setsansfont{" .. mainfont .. "}")
-    tex.sprint("\\setmathfont{" .. mathfont .. "}")
+end
+
+if profile_name == "abnt" then
+    doc_papersize = project.options.global.papersize or "a4papper"
+    doc_left = "3cm"
+    doc_top = "3cm"
+    doc_right = "2cm"
+    doc_bottom = "2cm"
+    doc_bibstyle = project.bibliography.abnt or "abnt-numeric"
+    doc_colorlinks = "true"
+    doc_linkcolor = "black"
+    doc_urlcolor = "black"
+    doc_citecolor = "black"
+    doc_pdfhighlight = "/N"
+else
+    doc_papersize = project.options.global.papersize or "a4papper"
+    doc_left = project.options.textual.left or "2.5cm"
+    doc_top = project.options.textual.top or "2.5cm"
+    doc_right = project.options.textual.right or "2.5cm"
+    doc_bottom = project.options.textual.bottom or "2.5cm"
+    doc_bibstyle = project.bibliography.style or "numeric-comp"
+    doc_colorlinks = project.hyper.setup or "true"
+    doc_linkcolor = project.hyper.setup or "blue"
+    doc_urlcolor = project.hyper.setup or "blue"
+    doc_citecolor = project.hyper.setup or "blue"
+    doc_pdfhighlight = project.hyper.setup or "/N"
 end
 
 function GenerateSignatures()
@@ -118,19 +153,19 @@ else
     acknowledgments_page = "Acknowledgments"
 end
 
-local doc_type = project.metadata.type or "Thesis"
-local degree = project.metadata.degree or "(Degree não definido)"
-local university = project.metadata.university or "(Universidade não definida)"
-local center = project.metadata.center or "(Centro não definido)"
-local program = project.metadata.program or "(Programa não definido)"
-local edital = project.metadata.edital or "(Edital não preenchido)"
+local doc_type = project.data.type or "Thesis"
+local degree = project.data.degree or "(Degree não definido)"
+local university = project.data.university or "(Universidade não definida)"
+local center = project.data.center or "(Centro não definido)"
+local program = project.data.program or "(Programa não definido)"
+local edital = project.data.edital or "(Edital não preenchido)"
 
 local doc_title = project.data.title or "(Título não definido)"
 local doc_author = project.data.author or "(Autor não definido)"
 local doc_date = project.data.date or "(Data não definida)"
 doc_date = string.gsub(doc_date, "/", " de ")
 local doc_address = project.data.address or "(Endereço não definido)"
-local doc_affiliation = project.metadata.affiliation or "(Filiação não encontrada)"
+local doc_affiliation = project.data.affiliation or "(Filiação não encontrada)"
 
 local doc_advisor_name = project.advisor[1].name or "(AdvisorName não definido)"
 local doc_advisor_role = project.advisor[1].role or "(Advisorrole não definido)"
