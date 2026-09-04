@@ -503,6 +503,8 @@ function UseGlossary()
     if project.frontmatter.listof.acronym or project.frontmatter.listof.symbols then
         tex.print("\\makeglossaries")
     end
+    tex.print("\\catcode`\\|=13")
+    tex.print("\\def|#1|{\\gls{#1}}")
 end
 
 function GenerateFrontMatter()

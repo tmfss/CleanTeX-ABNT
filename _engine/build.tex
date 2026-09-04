@@ -45,8 +45,8 @@
 \author{\directlua{tex.sprint(doc_author)}}
 
 \directlua{UseGlossary()}
-\catcode`\|=13
-\def|#1|{\gls{#1}}
+%\catcode`\|=13
+%\def|#1|{\gls{#1}}
 
 \directlua{GenerateGlossaryMap("acronyms")}
 \directlua{GenerateGlossaryMap("symbols")}
