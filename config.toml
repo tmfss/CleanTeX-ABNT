@@ -1,25 +1,29 @@
+[options.global]
+compile2abnt = false
+babel = "brazilian"
+papersize = "a4paper"
+
 [data]
-title = "Título da Dissertação/tese"
-author = "Timóteo Fassoni"
+title = "Título do Documento"
+author = "Nome do autor"
 date = "Fevereiro/2026"
-address = "Viçosa, Minas Gerais"
 type = "Dissertação"
 degree = "Mestre em Física"
+edital = ""
+address = "Viçosa, Minas Gerais"
 graduate = "Física"
-university = "Universidade Federal de Viçosa"
-affiliation = "UFV"
 center = "Centro de Ciências Exatas"
 program = "Programa de Pós-Graduação em Física"
-edital = ""
-compile2abnt = false
+university = "Universidade Federal de Viçosa"
+affiliation = "UFV"
 
 [[advisor]]
-name = "Silvio Ferreira"
+name = "Nome do orientador"
 affiliation = "UFV"
 role = "Orientador"
 
 [[advisor]]
-name = "Wesley Cota"
+name = "Nome de possível coorientador"
 affiliation = "UFV"
 role = "Coorientador"
 
@@ -78,9 +82,6 @@ urlcolor = "blue"
 citecolor = "blue"
 pdfhighlight = "/N"
 
-[options.global]
-babel = "brazilian"
-papersize = "a4paper"
 
 [options.textual]
 mainfont = "TeX Gyre Pagella"
