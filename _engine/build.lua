@@ -67,12 +67,8 @@ end
 
 if not project.frontmatter.numbering then
     tex.print([[\makeatletter]])
-    tex.print([[\renewcommand{\frontmatter}{%
-        \cleardoublepage\@mainmatterfalse\pagenumbering{roman}\pagestyle{empty}%
-    }]])
-    tex.print([[\renewcommand{\mainmatter}{%
-        \cleardoublepage\@mainmattertrue\pagenumbering{arabic}\pagestyle{plain}%
-    }]])
+    tex.print([[\renewcommand{\frontmatter}{\cleardoublepage\@mainmatterfalse\pagenumbering{roman}\pagestyle{empty}}]])
+    tex.print([[\renewcommand{\mainmatter}{\cleardoublepage\@mainmattertrue\pagenumbering{arabic}\pagestyle{plain}}]])
     tex.print([[\makeatother]])
 end
 
