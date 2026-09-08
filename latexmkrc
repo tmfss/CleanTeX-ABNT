@@ -38,3 +38,12 @@ sub run_makeglossaries {
     if ( $dir eq '' ) { $dir = '.'; }
     system("makeglossaries -d '$dir' '$base_name'");
 }
+
+#> Adds a hook to scan changes in tomls files
+add_hook('after_xlatex_analysis', sub {
+    
+    foreach my $file ( glob('*.toml'), glob('*/*.toml') ) {
+        rdb_ensure_file($rule, $file);
+    }
+
+});
