@@ -1,5 +1,4 @@
-\documentclass[oneside, 12pt]{book}
-\input{_engine/build.tex}
+\documentclass{cleantex}
 
 %   --- FRONTMATTER ---
 %   Title page
@@ -15,25 +14,12 @@
 
 \begin{document}
 
-\frontmatter
-\MakeFrontMatter
-\mainmatter
-\setcounter{page}{1}
-
-
-
 \chapter{Introdução}
 
 \providecommand{\CleanTeXprofile}{Não definido via terminal}
 
 Pelo visto, agora o \verb|\MakeFrontMatter| está funcionando legal\dots
 
-Mas e o glossário de \gls{gisc}? Também citamos com |gisc|.
+Mas e o glossário de \gls{gisc}? 
 
-E |prob|!
-
-\backmatter
-\nocite{*}
-\chapter{Referências}
-\printbibliography[heading=none]
 \end{document}

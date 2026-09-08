@@ -1,3 +1,8 @@
+# 0. Look in root and _engine folders
+use Config;
+my $sep = $Config{'path_sep'};
+$ENV{'TEXINPUTS'} = './_engine//' . $sep . '.' . $sep . ($ENV{'TEXINPUTS'} || '');
+
 # 1. Standard profile is default and jobname_sufix is none
 $profile = 'default';
 $jobname_sufix = '';
