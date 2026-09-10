@@ -1,68 +1,15 @@
 -- _engine/build.lua
--- Load the toml2lua parser 
-local toml = require("_engine.toml")
--- Function to read files
-local function read_file(path)
-    local file = io.open(path, "r")
-    if not file then return nil end
-    local content = file:read("*all")
-    file:close()
-    return content
-end
--- Function to merge tables
-local function merge_tables(t1, t2)
-    for k, v in pairs(t2) do
-        if type(v) == "table" and type(t1[k]) == "table" then
-            merge_tables(t1[k], v)
-        else
-            t1[k] = v
-        end
-    end
-    return t1
-end
 
--- 1.a Read config.toml file in root directory
-local user_config_content = read_file("config.toml")
-if not user_config_content then
-    print("ERRO: Arquivo config.toml não encontrado na raiz do projeto!")
+-- import io module
+local docio = require("_engine.docio")
+
+-- input the project
+local doc = docio.input_project()
+
+-- check
+if not doc then
+    tex.print("\\textbf{ERRO FATAL: Arquivo config.toml não encontrado ou inválido.}")
     return
-end
--- 1.b Get the used profile
-profile_name = "default"
--- If we're tex, then profile_name is the CleanTeXprofile macro
-if token and token.get_macro then
-    local p = token.get_macro("CleanTeXprofile")
-    if p and p ~= "" then
-        profile_name = p
-    end
-end
--- 1.c Read the glossary.toml configurations
-local subglossary_symbols = read_file("frontmatter/glossary_symbols.toml")
-local subglossary_acronyms = read_file("frontmatter/glossary_acronyms.toml")
-
--- 2.a Transform config.toml to project lua table
-project = toml.parse(user_config_content)
--- 2.b Transform the glossaries tomls to tables in lua
-local sub_glossary_symbols_table = toml.parse(subglossary_symbols)
-local sub_glossary_acronyms_table = toml.parse(subglossary_acronyms)
-glossary = merge_tables( sub_glossary_symbols_table, sub_glossary_acronyms_table )
--- 2.c Read the profile.toml
-if profile_name~="default" and profile_name~="abnt" then
-local profile_path = profile_name .. ".toml"
-local profile_content = read_file(profile_path)
-if profile_content then
-    local profile_data = toml.parse(profile_content) -- Transform profile.toml to profile_data project lua table  
-    -- 3. Merge the two tables: profile overwrites config, if needed
-    project = merge_tables(project, profile_data)
-else
-    if tex then 
-        tex.print("\\textbf{Aviso: Perfil " .. profile_name .. ".toml não encontrado!}") 
-    end
-end
-end
-
-if project.data.compile2abnt then
-    profile_name = "abnt"
 end
 
 if not project.frontmatter.numbering then
@@ -73,45 +20,7 @@ if not project.frontmatter.numbering then
 end
 
 function SetFont()
-    if profile_name == "abnt" then
-        tex.print("\\usepackage{setspace}")
-        tex.print("\\onehalfspacing")
-        tex.print("\\setmainfont{Tex Gyre Heros}")
-        tex.print("\\setsansfont{Tex Gyre Heros}")
-        tex.print("\\setmathfont{Latin Modern Math}")
-    else
-        local mainfont = project.options.textual.mainfont or "TeX Gyre Pagella"
-        local mathfont = project.options.textual.mathfont or "TeX Gyre Pagella Math"
-        tex.print("\\setmainfont{" .. mainfont .. "}")
-        tex.print("\\setsansfont{" .. mainfont .. "}")
-        tex.print("\\setmathfont{" .. mathfont .. "}")
-    end
-end
-
-if profile_name == "abnt" then
-    doc_papersize = project.options.global.papersize or "a4papper"
-    doc_left = "3cm"
-    doc_top = "3cm"
-    doc_right = "2cm"
-    doc_bottom = "2cm"
-    doc_bibstyle = project.bibliography.abnt or "abnt-numeric"
-    doc_colorlinks = "true"
-    doc_linkcolor = "black"
-    doc_urlcolor = "black"
-    doc_citecolor = "black"
-    doc_pdfhighlight = "/N"
-else
-    doc_papersize = project.options.global.papersize or "a4papper"
-    doc_left = project.options.textual.left or "2.5cm"
-    doc_top = project.options.textual.top or "2.5cm"
-    doc_right = project.options.textual.right or "2.5cm"
-    doc_bottom = project.options.textual.bottom or "2.5cm"
-    doc_bibstyle = project.bibliography.style or "numeric-comp"
-    doc_colorlinks = project.hyper.setup.colorlinks or "true"
-    doc_linkcolor = project.hyper.setup.linkcolor or "blue"
-    doc_urlcolor = project.hyper.setup.urlcolor or "blue"
-    doc_citecolor = project.hyper.setup.citecolor or "blue"
-    doc_pdfhighlight = project.hyper.setup.pdfhighlight or "/N"
+    doc.font()
 end
 
 function GenerateSignatures()
@@ -159,41 +68,18 @@ if is_ptbr then
     approval = "APROVADO:"
     assent = "ASSENTIMENTO:"
     acknowledgments_page = "Agradecimentos"
-    
+
 else
     approval = "APPROVED:"
     assent = "ASSENT:"
     acknowledgments_page = "Acknowledgments"
 end
 
-local doc_type = project.data.type or "Thesis"
-local degree = project.data.degree or "(Degree não definido)"
-local university = project.data.university or "(Universidade não definida)"
-local center = project.data.center or "(Centro não definido)"
-local program = project.data.program or "(Programa não definido)"
-local edital = project.data.edital or "(Edital não preenchido)"
-
-local doc_title = project.data.title or "(Título não definido)"
-local doc_author = project.data.author or "(Autor não definido)"
-local doc_date = project.data.date or "(Data não definida)"
-doc_date = string.gsub(doc_date, "/", " de ")
-local doc_address = project.data.address or "(Endereço não definido)"
-local doc_affiliation = project.data.affiliation or "(Filiação não encontrada)"
-
-local doc_advisor_name = project.advisor[1].name or "(AdvisorName não definido)"
-local doc_advisor_role = project.advisor[1].role or "(Advisorrole não definido)"
-local doc_advisor_affiliation = project.advisor[1].affiliation or "(Advisoraffiliation não definido)"
-
-local abstract_foreign_name = project.abstract.foreign.name or "(Abstract name is not defined)"
-local abstract_foreign_keyword = project.abstract.foreign.keyword or "(Abstract keyword is not defined)"
-local abstract_native_name = project.abstract.native.name or "(Resumo nome não definido)"
-local abstract_native_keyword = project.abstract.native.keyword or "(Resumo palavra-chave não definida)"
-
 function GeneratePresentation()
     if is_ptbr then
         if doc_type == "relatório" or doc_type == "relatorio" then
             tex.sprint("Relatório apresentado à " .. university .. " como parte do cumprimento das exigências do edital " .. edital .. ".")
-        else 
+        else
             tex.sprint(doc_type .. " apresentada à " .. university .. " como parte das exigências para obtenção do título de " .. degree .. ".")
         end
     else
@@ -215,7 +101,7 @@ end
 function GenerateABNTCitation()
     local nomes, sobrenome = string.match(doc_author, "^(.*)%s+(%S+)$")
     local author_abnt = doc_author
-    
+
     if nomes and sobrenome then
         local sobrenome_upper = unicode.utf8.upper(sobrenome)
         author_abnt = sobrenome_upper .. ", " .. nomes
@@ -234,7 +120,7 @@ function GenerateABNTCitation()
             advisors_str = advisors_str .. "Coorientadores: " .. table.concat(co_advisors, ", ", 1, #co_advisors - 1) .. " e " .. co_advisors[#co_advisors] .. "."
         end
     end
-    local reference = string.format("%s. %s, %s. \\textbf{%s}. %s", 
+    local reference = string.format("%s. %s, %s. \\textbf{%s}. %s",
         author_abnt, doc_affiliation, doc_date, doc_title, advisors_str)
     tex.sprint(reference)
 end
@@ -485,7 +371,7 @@ function GenerateGlossaryMap(gloss)
     elseif gloss == "symbols" and glossary.symbols then
         for label, sym in pairs(glossary.symbols) do
             if sym.name and sym.description then
-                local tex_cmd = string.format("\\newglossaryentry{%s}{name={%s}, description={%s}}", 
+                local tex_cmd = string.format("\\newglossaryentry{%s}{name={%s}, description={%s}}",
                     label, sym.name, sym.description)
                 tex.sprint(tex_cmd)
             end
