@@ -41,11 +41,33 @@ function doc.get_profile(project, profile_name)
             citecolor = "black",
             pdfhighlight = "/N",
             font = function()
-                tex.print("\\usepackage{setspace}")
-                tex.print("\\onehalfspacing")
-                tex.print("\\setmainfont{Tex Gyre Heros}")
-                tex.print("\\setsansfont{Tex Gyre Heros}")
-                tex.print("\\setmathfont{Latin Modern Math}")
+                tex.print({
+                    [=[\usepackage{setspace}]=],
+                    [=[\onehalfspacing]=],
+                    [=[\setmainfont{Tex Gyre Heros}]=],
+                    [=[\setsansfont{Tex Gyre Heros}]=],
+                    [=[\setmathfont{Latin Modern Math}]=]
+                })
+            end,
+            titlesec_style = function()
+                tex.print({
+                    [=[ \titleformat{\chapter}[block]]=],
+                    [=[    {\normalfont\bfseries\filright}]=],
+                    [=[    {\thechapter}]=],
+                    [=[    {0.3cm}]=],
+                    [=[    {\MakeUppercase}]=],
+                    [=[    [\vspace{0.3cm}\titlerule]]=],
+                    [=[\titleformat{name=\chapter,numberless}[block]]=],
+                    [=[    {\normalfont\bfseries\filcenter}{}{0pt}]=],
+                    [=[    {\MakeUppercase}]=],
+                    [=[    [\vspace{0.3cm}\titlerule]]=],
+                    [=[\RenewDocumentCommand{\part}{s o m}{}]=],
+                    [=[\fancypagestyle{plain}{]=],
+                    [=[  \fancyhf{}]=],
+                    [=[  \fancyhead[R]{\thepage}]=],
+                    [=[  \renewcommand{\headrulewidth}{0pt}]=],
+                    [=[}]=]
+                })
             end
         },
         ['default'] = {
@@ -64,6 +86,21 @@ function doc.get_profile(project, profile_name)
                 tex.print("\\setmainfont{" .. mainfont .. "}")
                 tex.print("\\setsansfont{" .. mainfont .. "}")
                 tex.print("\\setmathfont{" .. mathfont .. "}")
+            end,
+            titlesec_style = function()
+                tex.print({
+                    [=[\titleformat{\chapter}[display]]]=],
+                    [=[    {\normalfont\bfseries}]]=],
+                    [=[    {\filleft\LARGE\chaptertitlename\ \thechapter}]]=],
+                    [=[    {0.5cm}]]=],
+                    [=[    {\titlerule\vspace{0.8cm}\filright\Huge}]]=],
+                    [=[    [\vspace{2cm}]]]=],
+                    [=[\titleformat{name=\chapter,numberless}[display]]]=],
+                    [=[    {\normalfont\bfseries}{}{0pt}]]=],
+                    [=[    {\filright\Huge}]]=],
+                    [=[    [\vspace{2cm}]]]=],
+                    [=[\titlespacing*{\chapter}{0pt}{0pt}{0pt}]=]
+                })
             end
         }
     }
