@@ -5,7 +5,7 @@ papersize = "a4paper"
 
 [data]
 title = "Título do Documento"
-author = "Nome do autor"
+author = "Nome do Autor"
 date = "Fevereiro/2026"
 type = "Dissertação"
 degree = "Mestre em Física"
@@ -16,6 +16,7 @@ center = "Centro de Ciências Exatas"
 program = "Programa de Pós-Graduação em Física"
 university = "Universidade Federal de Viçosa"
 affiliation = "UFV"
+presentation = "Dissertação apresentada à Universidade Federal de Viçosa como parte das exigências para obtenção do título de Mestre em Física."
 
 [[advisor]]
 name = "Nome do orientador"

@@ -3,18 +3,18 @@
 
 \LoadClass[oneside, 12pt]{book}
 
-\input{build.tex} 
+\directlua{dofile("_engine/build.lua")}
 
 \AfterEndPreamble{%
     \frontmatter
-    \MakeFrontMatter
+    \directlua{GenerateFrontMatter()}
     \mainmatter
     \setcounter{page}{1}
 }
 
 \AtEndDocument{%
     \backmatter
-    \nocite{*} 
+    \nocite{*}
     \chapter{Referências}
     \printbibliography[heading=none]%
 }

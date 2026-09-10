@@ -1,232 +1,167 @@
 -- _engine/build.lua
--- Load the toml2lua parser 
-local toml = require("_engine.toml")
--- Function to read files
-local function read_file(path)
-    local file = io.open(path, "r")
-    if not file then return nil end
-    local content = file:read("*all")
-    file:close()
-    return content
-end
--- Function to merge tables
-local function merge_tables(t1, t2)
-    for k, v in pairs(t2) do
-        if type(v) == "table" and type(t1[k]) == "table" then
-            merge_tables(t1[k], v)
-        else
-            t1[k] = v
-        end
-    end
-    return t1
-end
+--
+-- 0 - importing doc table
+-- 1 - format document
+--     - page numbering
+--     - set font
+--     - packages
+--     -style for chapters
+-- 2 - config pkgs:
+--     - geometry
+--     - biblatex
+--     - hyperref
+--     - glossary
+--     - cleveref
+-- 3 - pre-textual content
+--     - title page
+--     - cover page
+--     - board approval
+--     - authors assent
+--     - dedication (optional)
+--     - acknowledgments (optional)
+--     - epigraph (optional)
+--     - abstract native
+--     - abstract foreign
+--     - list of figures
+--     - list of tables
+--     - list of acronyms
+--     - list of symbols
+--     - table of contents
+--
+--  0. Importing doc table --
+--
+-- import io module
+local docio = require("_engine.docio")
 
--- 1.a Read config.toml file in root directory
-local user_config_content = read_file("config.toml")
-if not user_config_content then
-    print("ERRO: Arquivo config.toml não encontrado na raiz do projeto!")
+-- input the project
+local doc = docio.input_project()
+
+-- check
+if not doc then
+    tex.print("\\textbf{ERRO FATAL: Arquivo config.toml não encontrado ou inválido.}")
     return
 end
--- 1.b Get the used profile
-profile_name = "default"
--- If we're tex, then profile_name is the CleanTeXprofile macro
-if token and token.get_macro then
-    local p = token.get_macro("CleanTeXprofile")
-    if p and p ~= "" then
-        profile_name = p
+
+--
+--  1. Formating document --
+--
+-- numbering frontmatter pages
+if not doc.frontmatter.numbering then
+    tex.print({
+        [[\makeatletter]],
+        [[\renewcommand{\frontmatter}{\cleardoublepage\@mainmatterfalse\pagenumbering{roman}\pagestyle{empty}}]],
+        [[\renewcommand{\mainmatter}{\cleardoublepage\@mainmattertrue\pagenumbering{arabic}\pagestyle{plain}}]],
+        [[\makeatother]]
+    })
+end
+-- packages
+tex.print({
+    [=[\usepackage{fontspec}]=],
+    [=[\usepackage{unicode-math}]=],
+    string.format([[\usepackage[%s]{babel}]], doc.options.global.babel),
+    [=[\usepackage{graphicx}]=],
+    [=[\usepackage{indentfirst}]=],
+    [=[\usepackage{fancyhdr}]=],
+    [=[\usepackage{titlesec}]=],
+    [=[\usepackage{epigraph}]=],
+    [=[\usepackage{caption}]=],
+    [=[\usepackage{microtype}]=],
+    [=[\usepackage[autostyle]{csquotes}]=],
+    [=[\usepackage{booktabs}]=],
+    [=[\usepackage{enumitem}]=],
+    [=[\usepackage{array}]=],
+    [=[\renewcommand{\arraystretch}{1.6}]=],
+    [=[\usepackage{pdfpages}]=],
+    [=[\usepackage{amsmath}]=]
+})
+-- set font
+doc.font()
+-- set style for chapters
+doc.titlesec_style()
+
+--
+--  2. Configuring packages --
+--
+-- geometry
+tex.print(
+    string.format([[\usepackage[%s,left=%s,top=%s,right=%s,bottom=%s]{geometry}]],
+    doc.papersize, doc.left, doc.top, doc.right, doc.bottom))
+-- biblatex
+tex.print({
+    [[\usepackage[]],
+    string.format([[    style=%s,]], doc.bibstyle),
+    [[    backend=biber,]],
+    [[    sorting=none,]],
+    [[    giveninits=true,]],
+    [[    uniquelist=false,]],
+    [[    uniquename=false,]],
+    [[    natbib=true,]],
+    [[    maxcitenames=1,]],
+    [[    mincitenames=1]],
+    [[]{biblatex}]],
+    string.format([[\addbibresource{%s}]], doc.bibliography.file)
+})
+-- hyperref
+tex.print([[\usepackage{hyperref}]])
+tex.print(string.format(
+    [[\hypersetup{colorlinks=%s, linkcolor=%s, urlcolor=%s, citecolor=%s, pdfhighlight=%s}]],
+    doc.colorlinks, doc.linkcolor, doc.urlcolor, doc.citecolor, doc.pdfhighlight
+))
+tex.print(string.format([[\hypersetup{pdftitle={%s}, pdfauthor={%s}}]], doc.title, doc.author))
+tex.print(string.format([[\title{%s}]], doc.title))
+tex.print(string.format([[\author{%s}]], doc.author))
+-- glossary
+if doc.glossary then
+    tex.print([[\usepackage[symbols, acronym, nonumberlist]{glossaries}]])
+    if doc.frontmatter.listof.acronym or doc.frontmatter.listof.symbols then
+        tex.print([[\makeglossaries]])
     end
 end
--- 1.c Read the glossary.toml configurations
-local subglossary_symbols = read_file("frontmatter/glossary_symbols.toml")
-local subglossary_acronyms = read_file("frontmatter/glossary_acronyms.toml")
-
--- 2.a Transform config.toml to project lua table
-project = toml.parse(user_config_content)
--- 2.b Transform the glossaries tomls to tables in lua
-local sub_glossary_symbols_table = toml.parse(subglossary_symbols)
-local sub_glossary_acronyms_table = toml.parse(subglossary_acronyms)
-glossary = merge_tables( sub_glossary_symbols_table, sub_glossary_acronyms_table )
--- 2.c Read the profile.toml
-if profile_name~="default" and profile_name~="abnt" then
-local profile_path = profile_name .. ".toml"
-local profile_content = read_file(profile_path)
-if profile_content then
-    local profile_data = toml.parse(profile_content) -- Transform profile.toml to profile_data project lua table  
-    -- 3. Merge the two tables: profile overwrites config, if needed
-    project = merge_tables(project, profile_data)
-else
-    if tex then 
-        tex.print("\\textbf{Aviso: Perfil " .. profile_name .. ".toml não encontrado!}") 
-    end
-end
-end
-
-if project.data.compile2abnt then
-    profile_name = "abnt"
-end
-
-if not project.frontmatter.numbering then
-    tex.print([[\makeatletter]])
-    tex.print([[\renewcommand{\frontmatter}{\cleardoublepage\@mainmatterfalse\pagenumbering{roman}\pagestyle{empty}}]])
-    tex.print([[\renewcommand{\mainmatter}{\cleardoublepage\@mainmattertrue\pagenumbering{arabic}\pagestyle{plain}}]])
-    tex.print([[\makeatother]])
-end
-
-function SetFont()
-    if profile_name == "abnt" then
-        tex.print("\\usepackage{setspace}")
-        tex.print("\\onehalfspacing")
-        tex.print("\\setmainfont{Tex Gyre Heros}")
-        tex.print("\\setsansfont{Tex Gyre Heros}")
-        tex.print("\\setmathfont{Latin Modern Math}")
-    else
-        local mainfont = project.options.textual.mainfont or "TeX Gyre Pagella"
-        local mathfont = project.options.textual.mathfont or "TeX Gyre Pagella Math"
-        tex.print("\\setmainfont{" .. mainfont .. "}")
-        tex.print("\\setsansfont{" .. mainfont .. "}")
-        tex.print("\\setmathfont{" .. mathfont .. "}")
-    end
-end
-
-if profile_name == "abnt" then
-    doc_papersize = project.options.global.papersize or "a4papper"
-    doc_left = "3cm"
-    doc_top = "3cm"
-    doc_right = "2cm"
-    doc_bottom = "2cm"
-    doc_bibstyle = project.bibliography.abnt or "abnt-numeric"
-    doc_colorlinks = "true"
-    doc_linkcolor = "black"
-    doc_urlcolor = "black"
-    doc_citecolor = "black"
-    doc_pdfhighlight = "/N"
-else
-    doc_papersize = project.options.global.papersize or "a4papper"
-    doc_left = project.options.textual.left or "2.5cm"
-    doc_top = project.options.textual.top or "2.5cm"
-    doc_right = project.options.textual.right or "2.5cm"
-    doc_bottom = project.options.textual.bottom or "2.5cm"
-    doc_bibstyle = project.bibliography.style or "numeric-comp"
-    doc_colorlinks = project.hyper.setup.colorlinks or "true"
-    doc_linkcolor = project.hyper.setup.linkcolor or "blue"
-    doc_urlcolor = project.hyper.setup.urlcolor or "blue"
-    doc_citecolor = project.hyper.setup.citecolor or "blue"
-    doc_pdfhighlight = project.hyper.setup.pdfhighlight or "/N"
-end
-
-function GenerateSignatures()
-    -- Função auxiliar que cospe o LaTeX de uma única linha de assinatura
-    local function print_person(person)
-        -- Fallbacks de segurança: se o usuário esqueceu de preencher algo no TOML
-        local title = person.title and (person.title .. " ") or ""
-        local name = person.name or "Nome não definido"
-        local role = person.role or "Membro"
-        local affil = person.affiliation and (" -- " .. person.affiliation) or ""
-
-        -- Injeta os comandos LaTeX na memória
-        tex.print("\\vspace{1.2cm}")
-        tex.print("\\begin{center}")
-        tex.print("\\rule{10cm}{0.5pt} \\\\")
-        tex.print("\\textbf{" .. title .. name .. "} \\\\")
-        tex.print(role .. affil)
-        tex.print("\\end{center}")
-    end
-
-    if project.board then
-        for _, person in ipairs(project.board) do
-            print_person(person)
+if doc.glossary.acronyms then
+    for label, acr in pairs(doc.glossary.acronyms) do
+        if acr.short and acr.long then
+            local tex_cmd = string.format([[\newacronym{%s}{%s}{%s}]], label, acr.short, acr.long)
+            tex.print(tex_cmd)
         end
     end
 end
-
-function GenerateNames()
-    local function print_person(person)
-        local name = person.name or "Nome não definido"
-        local role = person.role or "Orientador"
-
-        tex.print("\\textbf{" .. role .. ":} " ..name .. "\\\\")
-    end
-    if project.advisor then
-        for _, person in ipairs(project.advisor) do
-            print_person(person)
+if doc.glossary.symbols then
+    for label, sym in pairs(doc.glossary.symbols) do
+        if sym.name and sym.description then
+            local tex_cmd = string.format([[\newglossaryentry{%s}{name={%s}, description={%s}}]],
+                label, sym.name, sym.description)
+            tex.print(tex_cmd)
         end
     end
 end
+-- cleveref
+tex.print([[\usepackage{cleveref}]])
 
-is_ptbr = (project.options.global.babel == "brazilian")
+--
+--  3. Frontmatter --
+--
+-- Some useful functions
+local header = string.format([[%s\\%s\\%s]], doc.university, doc.center, doc.program)
+local footer = string.format([[%s\\%s]], doc.address, doc.date)
+local names = string.format([[\textbf{Orientado:} %s\\ \textbf{%s:} %s]], doc.author, doc.advisor_role, doc.advisor_name)
+local keywords = {
+    ['native'] = table.concat(doc.abstract.native.keywords, "; ") .. "." ,
+    ['foreign'] = table.concat(doc.abstract.foreign.keywords, "; ") .. "."
+}
+local function build_abnt_reference()
+    local nomes, sobrenome = string.match(doc.author, "^(.*)%s+(%S+)$")
+    local author_abnt = doc.author
 
-if is_ptbr then
-    approval = "APROVADO:"
-    assent = "ASSENTIMENTO:"
-    acknowledgments_page = "Agradecimentos"
-    
-else
-    approval = "APPROVED:"
-    assent = "ASSENT:"
-    acknowledgments_page = "Acknowledgments"
-end
-
-local doc_type = project.data.type or "Thesis"
-local degree = project.data.degree or "(Degree não definido)"
-local university = project.data.university or "(Universidade não definida)"
-local center = project.data.center or "(Centro não definido)"
-local program = project.data.program or "(Programa não definido)"
-local edital = project.data.edital or "(Edital não preenchido)"
-
-local doc_title = project.data.title or "(Título não definido)"
-local doc_author = project.data.author or "(Autor não definido)"
-local doc_date = project.data.date or "(Data não definida)"
-doc_date = string.gsub(doc_date, "/", " de ")
-local doc_address = project.data.address or "(Endereço não definido)"
-local doc_affiliation = project.data.affiliation or "(Filiação não encontrada)"
-
-local doc_advisor_name = project.advisor[1].name or "(AdvisorName não definido)"
-local doc_advisor_role = project.advisor[1].role or "(Advisorrole não definido)"
-local doc_advisor_affiliation = project.advisor[1].affiliation or "(Advisoraffiliation não definido)"
-
-local abstract_foreign_name = project.abstract.foreign.name or "(Abstract name is not defined)"
-local abstract_foreign_keyword = project.abstract.foreign.keyword or "(Abstract keyword is not defined)"
-local abstract_native_name = project.abstract.native.name or "(Resumo nome não definido)"
-local abstract_native_keyword = project.abstract.native.keyword or "(Resumo palavra-chave não definida)"
-
-function GeneratePresentation()
-    if is_ptbr then
-        if doc_type == "relatório" or doc_type == "relatorio" then
-            tex.sprint("Relatório apresentado à " .. university .. " como parte do cumprimento das exigências do edital " .. edital .. ".")
-        else 
-            tex.sprint(doc_type .. " apresentada à " .. university .. " como parte das exigências para obtenção do título de " .. degree .. ".")
-        end
-    else
-        tex.sprint(doc_type .. " submitted to " .. university .. " as part of the requirements to obtain the degree of " .. degree .. ".")
-    end
-end
-
-function GenerateHeader()
-    tex.print(university .. "\\\\")
-    tex.print(center .. "\\\\")
-    tex.print(program .. "\\\\")
-end
-
-function GenerateFooter()
-    tex.print(doc_address .. "\\\\")
-    tex.print(doc_date .. "\\\\")
-end
-
-function GenerateABNTCitation()
-    local nomes, sobrenome = string.match(doc_author, "^(.*)%s+(%S+)$")
-    local author_abnt = doc_author
-    
     if nomes and sobrenome then
         local sobrenome_upper = unicode.utf8.upper(sobrenome)
         author_abnt = sobrenome_upper .. ", " .. nomes
     end
 
-    local advisors_str = ""
-    advisors_str = advisors_str .. "Orientador: " .. doc_advisor_name .. ". "
-    if #project.advisor > 1 then
+    local advisors_str = "Orientador: " .. doc.advisor_name .. ". "
+    if #doc.advisor > 1 then
         local co_advisors = {}
-        for i = 2, #project.advisor do
-            table.insert(co_advisors, project.advisor[i].name or "(Name não definido)")
+        for i = 2, #doc.advisor do
+            table.insert(co_advisors, doc.advisor[i].name or "(Name não definido)")
         end
         if #co_advisors == 1 then
             advisors_str = advisors_str .. "Coorientador: " .. co_advisors[1] .. "."
@@ -234,270 +169,234 @@ function GenerateABNTCitation()
             advisors_str = advisors_str .. "Coorientadores: " .. table.concat(co_advisors, ", ", 1, #co_advisors - 1) .. " e " .. co_advisors[#co_advisors] .. "."
         end
     end
-    local reference = string.format("%s. %s, %s. \\textbf{%s}. %s", 
-        author_abnt, doc_affiliation, doc_date, doc_title, advisors_str)
-    tex.sprint(reference)
+    return string.format("%s. %s, %s. \\textbf{%s}. %s", author_abnt, doc.affiliation, doc.date, doc.title, advisors_str)
+end
+local title_formated = {
+    ['default'] = string.format([[\textbf{%s}]], doc.title),
+    ['abnt'] = build_abnt_reference() -- Executa a função e guarda o texto!
+}
+function GenerateSignatures()
+    local function print_person(person)
+        local title = person.title and (person.title .. " ") or ""
+        local name = person.name or "Nome não definido"
+        local role = person.role or "Membro"
+        local affil = person.affiliation and (" -- " .. person.affiliation) or ""
+        tex.print("\\vspace{1.2cm}")
+        tex.print("\\begin{center}")
+        tex.print("\\rule{10cm}{0.5pt} \\\\")
+        tex.print("\\textbf{" .. title .. name .. "} \\\\")
+        tex.print(role .. affil)
+        tex.print("\\end{center}")
+    end
+    if doc.board then
+        for _, person in ipairs(doc.board) do
+            print_person(person)
+        end
+    end
 end
 
-function GenerateBigTitle()
-    tex.sprint("\\begin{center}")
-    tex.sprint("\\rule{0.4\\linewidth}{0.8pt}\\vspace{0.4cm}\\par")
-    tex.sprint("{\\bfseries\\Large " .. doc_title .. " \\par}")
-    tex.sprint("\\vspace{0.3cm}\\rule{0.4\\linewidth}{0.8pt}\\par")
-    tex.sprint("\\end{center}")
-end
-
+-- Title Page
 function GenerateTitlePage()
-    if project.frontmatter.titlepage then
-    tex.sprint("\\begin{titlepage}")
-    tex.sprint("\\noindent\\begin{minipage}[t][6cm][t]{\\textwidth}")
-    tex.sprint("    \\begin{center}")
-    GenerateHeader()
-    tex.sprint("        \\vspace{2cm}")
-    tex.sprint("")
-    tex.sprint("        {\\large \\textbf{" .. doc_author .. "}}")
-    tex.sprint("    \\end{center}")
-    tex.sprint("\\end{minipage}")
-    tex.sprint("")
-    tex.sprint("\\vspace*{\\fill}")
-    GenerateBigTitle()
-    tex.sprint("\\vspace*{\\fill}")
-    tex.sprint("")
-    tex.sprint("\\noindent\\begin{minipage}[b][6cm][b]{\\textwidth}")
-    tex.sprint("    \\begin{center}")
-    GenerateFooter()
-    tex.sprint("    \\end{center}")
-    tex.sprint("\\end{minipage}")
-    tex.sprint("\\end{titlepage}")
+    if doc.frontmatter.titlepage then
+        tex.print({
+        [[\begin{titlepage}]],
+        [[\noindent\begin{minipage}[t][6cm][t]{\textwidth}]],
+        [[\begin{center}]],
+        header .. [[ \\[2cm] ]],
+        string.format([[{\large\bfseries %s}]], doc.author),
+        [[\end{center}]],
+        [[\end{minipage}]],
+        [[\vspace*{\fill}]],
+        [[\begin{center}]],
+        [[\rule{0.4\linewidth}{0.8pt}\vspace{0.4cm}\par]],
+        string.format([[{\bfseries\Large %s \par}]], doc.title),
+        [[\vspace{0.3cm}\rule{0.4\linewidth}{0.8pt}\par]],
+        [[\end{center}]],
+        [[\vspace*{\fill}]],
+        [[\noindent\begin{minipage}[b][6cm][b]{\textwidth}]],
+        [[\begin{center}]],
+        footer,
+        [[\end{center}]],
+        [[\end{minipage}]],
+        [[\end{titlepage}]]
+        })
     end
 end
-
+-- Cover Page
 function GenerateCoverPage()
-    if project.frontmatter.coverpage then
-    tex.sprint("\\cleardoublepage")
-    tex.sprint("\\begin{titlepage}")
-    tex.sprint("\\noindent\\begin{minipage}[t][9cm][t]{\\textwidth}")
-    tex.sprint("    \\begin{center}")
-    tex.sprint("        {\\large \\textbf{" .. doc_author .. "}}")
-    tex.sprint("    \\end{center}")
-    tex.sprint("\\end{minipage}")
-    tex.sprint("")
-    tex.sprint("\\vspace*{\\fill}")
-    GenerateBigTitle()
-    tex.sprint("\\vspace*{\\fill}")
-    tex.sprint("")
-    tex.sprint("\\begin{minipage}[b][9cm][b]{\\textwidth}")
-    tex.sprint("\\hfill")
-    tex.sprint("\\begin{minipage}[c][3cm][c]{8cm}")
-    tex.sprint("\\small{")
-    GeneratePresentation()
-    tex.sprint("}")
-    tex.sprint("\\vspace{0.5cm}")
-    tex.sprint("\\linebreak")
-    tex.sprint("")
-    tex.sprint("\\textbf{Orientado:} " .. doc_author .. "\\\\")
-    GenerateNames()
-    tex.sprint("\\end{minipage}")
-    tex.sprint("\\vspace*{\\fill}")
-    tex.sprint("\\begin{center}")
-    GenerateFooter()
-    tex.sprint("\\end{center}")
-    tex.sprint("\\end{minipage}")
-    tex.sprint("\\end{titlepage}")
+    if doc.frontmatter.coverpage then
+        tex.print({
+            [[\cleardoublepage]],
+            [[\begin{titlepage}]],
+            [[\noindent\begin{minipage}[t][6cm][t]{\textwidth}]],
+            [[\begin{center}]],
+            header .. [[ \\[2cm] ]],
+            string.format([[{\large\bfseries %s}]], doc.author),
+            [[\end{center}]],
+            [[\end{minipage}]],
+            [[\vspace*{\fill}]],
+            [[\begin{center}]],
+            [[\rule{0.4\linewidth}{0.8pt}\vspace{0.4cm}\par]],
+            string.format([[{\bfseries\Large %s \par}]], doc.title),
+            [[\vspace{0.3cm}\rule{0.4\linewidth}{0.8pt}\par]],
+            [[\end{center}]],
+            [[\vspace*{\fill}]],
+            [[\noindent\begin{minipage}[b][9cm][b]{\textwidth}]],
+            [[\hfill]],
+            [[\begin{minipage}[c][3cm][c]{8cm}]],
+            string.format([[{\small %s}\\]], doc.presentation),
+            [[]],
+            [[\vspace{0.5cm}]],
+            names,
+            [[\end{minipage}\\]],
+            [[\vspace*{\fill}]],
+            [[\begin{center}]],
+            footer,
+            [[\end{center}]],
+            [[\end{minipage}]],
+            [[\end{titlepage}]]
+        })
     end
 end
-
+-- Approval Page
 function GenerateApprovalPage()
-    if project.frontmatter.approvalpage then
-    tex.sprint("\\cleardoublepage")
-    tex.sprint("\\noindent\\begin{minipage}[t][3cm][t]{\\textwidth}")
-    tex.sprint("    \\begin{center}")
-    tex.sprint("        {\\large \\textbf{" .. doc_author .. "}}\\\\")
-    tex.sprint("        \\vspace{1.5cm}")
-    tex.sprint("")
-    tex.sprint("        \\textbf{" .. doc_title .. "}")
-    tex.sprint("    \\end{center}")
-    tex.sprint("\\end{minipage}\\\\")
-    tex.sprint("\\begin{minipage}[c][3cm][c]{\\textwidth}")
-    tex.sprint("\\hfill")
-    tex.sprint("\\begin{minipage}[c][3cm][c]{8cm}")
-    tex.sprint("\\small{")
-    GeneratePresentation()
-    tex.sprint("}")
-    tex.sprint("\\end{minipage}")
-    tex.sprint("\\vspace{0.3cm}")
-    tex.sprint("\\end{minipage}")
-    tex.sprint("")
-    tex.sprint("\\linebreak")
-    tex.sprint("\\textbf{".. approval .."}")
-    tex.sprint("\\vspace*{\\fill}")
-    GenerateSignatures()
+    if doc.frontmatter.approvalpage then
+        tex.print({
+            [[\cleardoublepage]],
+            [[\noindent\begin{minipage}[t][3cm][t]{\textwidth}]],
+            [[\begin{center}]],
+            string.format([[{\large\bfseries %s}\\]], doc.author),
+            [[\vspace{1.5cm}]],
+            string.format([[\textbf{%s}]],doc.title),
+            [[\end{center}]],
+            [[\end{minipage}]],
+            [[\noindent\begin{minipage}[c][3cm][c]{\textwidth}]],
+            [[\hfill]],
+            [[\noindent\begin{minipage}[c][3cm][c]{8cm}]],
+            string.format([[{\small %s}\\]], doc.presentation),
+            [[\end{minipage}]],
+            [[\end{minipage}]],
+            [[\vspace{0.3cm}]],
+            string.format([[{\bfseries %s:}\\]], doc.approval),
+            [[\vspace*{\fill}]]
+        })
+        GenerateSignatures()
     end
 end
-
+-- Assent Page
 function GenerateAssentPage()
-    if project.frontmatter.assentpage then
-    tex.sprint("\\cleardoublepage")
-    tex.sprint("\\noindent\\begin{minipage}[t][3cm][t]{\\textwidth}")
-    tex.sprint("    \\begin{center}")
-    tex.sprint("        {\\large \\textbf{" .. doc_author .. "}}\\\\")
-    tex.sprint("        \\vspace{1.5cm}")
-    tex.sprint("")
-    tex.sprint("        \\textbf{" .. doc_title .. "}")
-    tex.sprint("    \\end{center}")
-    tex.sprint("\\end{minipage}\\\\")
-    tex.sprint("\\begin{minipage}[c][3cm][c]{\\textwidth}")
-    tex.sprint("\\hfill")
-    tex.sprint("\\begin{minipage}[c][3cm][c]{8cm}")
-    tex.sprint("\\small{")
-    GeneratePresentation()
-    tex.sprint("}")
-    tex.sprint("\\end{minipage}")
-    tex.sprint("\\vspace{0.3cm}")
-    tex.sprint("\\end{minipage}")
-    tex.sprint("")
-    tex.sprint("\\linebreak")
-    tex.sprint("\\textbf{".. approval .."}\\\\")
-    tex.sprint("\\linebreak")
-    tex.sprint("\\textbf{".. assent .."}")
-    tex.sprint("\\vspace*{\\fill}")
-    tex.sprint("\\begin{center}")
-    tex.sprint("\\vspace{1.2cm}")
-    tex.sprint("\\rule{10cm}{0.5pt}\\\\")
-    tex.sprint("\\textbf{".. doc_author .. "}\\\\")
-    tex.sprint("Orientado --- " .. doc_affiliation)
-    tex.sprint("\\end{center}")
-    tex.sprint("")
-    tex.sprint("\\begin{center}")
-    tex.sprint("\\vspace{1.2cm}")
-    tex.sprint("\\rule{10cm}{0.5pt}\\\\")
-    tex.sprint("\\textbf{" .. doc_advisor_name .."}\\\\")
-    tex.sprint(doc_advisor_role .. " --- " .. doc_advisor_affiliation )
-    tex.sprint("")
-    tex.sprint("\\end{center}")
+    if doc.frontmatter.assentpage then
+        tex.print({
+            [[\cleardoublepage]],
+            [[\noindent\begin{minipage}[t][3cm][t]{\textwidth}]],
+            [[\begin{center}]],
+            string.format([[{\large\bfseries %s}\\]], doc.author),
+            [[\vspace{1.5cm}]],
+            string.format([[\textbf{%s}]],doc.title),
+            [[\end{center}]],
+            [[\end{minipage}]],
+            [[\noindent\begin{minipage}[c][3cm][c]{\textwidth}]],
+            [[\hfill]],
+            [[\noindent\begin{minipage}[c][3cm][c]{8cm}]],
+            string.format([[{\small %s}\\]], doc.presentation),
+            [[\end{minipage}]],
+            [[\end{minipage}]],
+            [[\vspace{0.3cm}]],
+            string.format([[{\bfseries %s:}\\]], doc.approval),
+            string.format([[{\bfseries %s:}\\]], doc.assent),
+            [[\vspace*{\fill}]],
+            [[\begin{center}]],
+            [[\vspace{1.2cm}]],
+            [[\rule{10cm}{0.5pt}\\]],
+            string.format([[\textbf{%s}\\]], doc.author),
+            string.format([[Orientado --- %s\\]], doc.affiliation),
+            [[\end{center}]],
+            [[\begin{center}]],
+            [[\vspace{1.2cm}]],
+            [[\rule{10cm}{0.5pt}\\]],
+            string.format([[\textbf{%s}\\]], doc.advisor_name),
+            string.format([[%s --- %s\\]], doc.advisor_role, doc.affiliation),
+            [[\end{center}]]
+        })
     end
 end
-
+-- Generate Dedication Page
 function GenerateDedicationPage()
-    if project.frontmatter.dedication then
-    tex.sprint("\\cleardoublepage")
-    tex.sprint("\\vspace*{\\fill}")
-    tex.sprint("\\hfill")
-    tex.sprint("\\begin{minipage}[c][3cm][c]{6cm}")
-    tex.sprint("\\input{frontmatter/dedication.tex}")
-    tex.sprint("\\end{minipage}")
+    if doc.frontmatter.dedication then
+        tex.print({
+            [[\cleardoublepage]],
+            [[\vspace*{\fill}]],
+            [[\hfill]],
+            [[\begin{minipage}[c][3cm][c]{6cm}]],
+            [[\input{frontmatter/dedication.tex}]],
+            [[\end{minipage}]]
+        })
     end
 end
-
+-- Generate Acknowledgments Page
 function GenerateAcknowledgmentsPage()
-    if project.frontmatter.acknowledgments then
-    tex.sprint("\\cleardoublepage")
-    tex.sprint("\\chapter*{" .. acknowledgments_page .. "}")
-    tex.sprint("\\input{frontmatter/acknowledgments.tex}")
-    tex.sprint("\\vspace*{\\fill}")
+    if doc.frontmatter.acknowledgments then
+        tex.print({
+            [[\cleardoublepage]],
+            string.format([[\chapter*{%s}]],doc.acknowledgments_page),
+            [[\input{frontmatter/acknowledgments.tex}]],
+            [[\vspace*{\fill}]]
+        })
     end
 end
-
+-- Generate Epigraph Page
 function GenerateEpigraphPage()
-    if project.frontmatter.epigraph then
-    tex.sprint("\\cleardoublepage")
-    tex.sprint("\\vspace*{\\fill}")
-    tex.sprint("\\hfill")
-    tex.sprint("\\begin{minipage}[c][3cm][c]{6cm}")
-    tex.sprint("    \\input{frontmatter/epigraph.tex}")
-    tex.sprint("\\end{minipage}")
+    if doc.frontmatter.epigraph then
+        tex.print({
+            [[\cleardoublepage]],
+            [[\vspace*{\fill}]],
+            [[\hfill]],
+            [[\begin{minipage}[c][3cm][c]{6cm}]],
+            [[\input{frontmatter/epigraph.tex}]],
+            [[\end{minipage}]]
+        })
     end
 end
-
-function GenerateKeywords(lang)
-    local keys = ""
-    if lang == "native" then
-        keys = table.concat(project.abstract.native.keywords, "; ") .. "."
-        tex.sprint("\\noindent\\textbf{" .. abstract_native_keyword .. ":} ")
-        tex.sprint(keys)
-    elseif lang == "foreign" then
-        keys = table.concat(project.abstract.foreign.keywords, "; ") .. "."
-        tex.sprint("\\noindent\\textbf{" .. abstract_foreign_keyword .. ":} ")
-        tex.sprint(keys)
-    end
-end
-
+-- Generate Abstract in Foreign Language
 function GenerateAbstractForeign()
-    if project.frontmatter.abstract.foreign then
-    tex.sprint("\\cleardoublepage")
-    tex.sprint("\\begin{center}")
-    tex.sprint("    \\vspace{0.5cm}")
-    tex.sprint("    \\textbf{" .. unicode.utf8.upper(abstract_foreign_name) .. "}\\\\")
-    if profile_name == "abnt" then
-        tex.sprint("\\vspace{1cm}")
-        tex.sprint("\\begin{minipage}{0.8\\textwidth}")
-        GenerateABNTCitation()
-        tex.sprint("\\end{minipage}")
-    else
-        tex.sprint("    \\vspace{0.5cm}")
-        tex.sprint("    \\textbf{" .. doc_title .. "}\\\\")
-    end
-    tex.sprint("    \\vspace{0.5cm}")
-    tex.sprint("\\end{center}")
-    tex.sprint("\\input{frontmatter/abstract_foreign.tex}\\\\")
-    tex.sprint("\\vspace{0.5cm}")
-    tex.sprint("\\linebreak")
-    GenerateKeywords("foreign")
+    if doc.frontmatter.abstract.foreign then
+        tex.print({
+            [[\cleardoublepage]],
+            [[\begin{center}]],
+            [[\vspace{0.5cm}]],
+            string.format([[\textbf{%s}]], unicode.utf8.upper(doc.abstract_foreign_name)),
+            [[]],
+            [[\vspace{0.5cm}]],
+            title_formated[doc.profile_name],
+            [[]],
+            [[\vspace{0.5cm}]],
+            [[\end{center}]],
+            [[\input{frontmatter/abstract_foreign.tex}\\]],
+            [[\vspace{0.5cm}]],
+            [[\linebreak]],
+            string.format([[\textbf{Keywords: %s}]], keywords['foreign'])
+        })
     end
 end
-
+-- Generate Abstract in Native Language
 function GenerateAbstractNative()
-    if project.frontmatter.abstract.native then
-    tex.sprint("\\cleardoublepage")
-    tex.sprint("\\begin{center}")
-    tex.sprint("    \\vspace{0.5cm}")
-    tex.sprint("    \\textbf{" .. unicode.utf8.upper(abstract_native_name) .. "}\\\\")
-    if profile_name == "abnt" then
-        tex.sprint("\\vspace{1cm}")
-        tex.sprint("\\begin{minipage}{0.8\\textwidth}")
-        GenerateABNTCitation()
-        tex.sprint("\\end{minipage}")
-    else
-        tex.sprint("    \\vspace{0.5cm}")
-        tex.sprint("    \\textbf{" .. doc_title .. "}\\\\")
-    end
-    tex.sprint("    \\vspace{0.5cm}")
-    tex.sprint("\\end{center}")
-    tex.sprint("\\input{frontmatter/abstract_native.tex}\\\\")
-    tex.sprint("\\vspace{0.5cm}")
-    tex.sprint("\\linebreak")
-    GenerateKeywords("native")
-    end
-end
-
-function GenerateGlossaryMap(gloss)
-    if not glossary then return end
-
-    if gloss == "acronyms" and glossary.acronyms then
-        for label, acr in pairs(glossary.acronyms) do
-            if acr.short and acr.long then
-                -- \newacronym{sus}{SUS}{Sistema Único de Saúde}
-                local tex_cmd = string.format("\\newacronym{%s}{%s}{%s}", label, acr.short, acr.long)
-                tex.sprint(tex_cmd)
-            end
-        end
-
-    elseif gloss == "symbols" and glossary.symbols then
-        for label, sym in pairs(glossary.symbols) do
-            if sym.name and sym.description then
-                local tex_cmd = string.format("\\newglossaryentry{%s}{name={%s}, description={%s}}", 
-                    label, sym.name, sym.description)
-                tex.sprint(tex_cmd)
-            end
-        end
-    end
-end
-
-function UseGlossary()
-    if not glossary then return end
-    tex.print("\\usepackage[symbols, acronym, nonumberlist]{glossaries}")
-    if project.frontmatter.listof.acronym or project.frontmatter.listof.symbols then
-        tex.print("\\makeglossaries")
+    if doc.frontmatter.abstract.native then
+        tex.print({
+            [[\cleardoublepage]],
+            [[\begin{center}]],
+            [[\vspace{0.5cm}]],
+            string.format([[\textbf{%s}]], unicode.utf8.upper(doc.abstract_native_name)),
+            [[]],
+            [[\vspace{0.5cm}]],
+            title_formated[doc.profile_name],
+            [[]],
+            [[\vspace{0.5cm}]],
+            [[\end{center}]],
+            [[\input{frontmatter/abstract_native.tex}\\]],
+            [[\vspace{0.5cm}]],
+            [[\linebreak]],
+            string.format([[\textbf{Keywords: %s}]], keywords['native'])
+        })
     end
 end
 
@@ -507,25 +406,23 @@ function GenerateFrontMatter()
     GenerateApprovalPage()
     GenerateAssentPage()
     GenerateDedicationPage()
-    GenerateAcknowledgmentsPage()
-    GenerateEpigraphPage()
-    GenerateAbstractNative()
     GenerateAbstractForeign()
-    if project.frontmatter.listof.figures then
-        tex.sprint("\\listoffigures")
+    GenerateAbstractNative()
+    if doc.frontmatter.listof.figures then
+        tex.print([[\listoffigures]])
     end
-    if project.frontmatter.listof.tables then
-        tex.sprint("\\listoftables")
+    if doc.frontmatter.listof.tables then
+        tex.print([[\listoftables]])
     end
-    if project.frontmatter.listof.acronym then
-        if project.frontmatter.glossary.acronyms.nocite then tex.sprint("\\glsaddall[types=\\acronymtype]") end
-        tex.sprint("\\printglossary[type=\\acronymtype, title={Lista de Siglas}]")
+    if doc.frontmatter.listof.acronym then
+        if doc.frontmatter.glossary.acronyms.nocite then tex.print([=[\glsaddall[types=\acronymtype]]=]) end
+        tex.print([=[\printglossary[type=\acronymtype, title={Lista de Siglas}]]=])
     end
-    if project.frontmatter.listof.symbols then
-        if project.frontmatter.glossary.symbols.nocite then tex.sprint("\\glsaddall[types=main]") end
-        tex.sprint("\\printglossary[title={Lista de Símbolos}]")
+    if doc.frontmatter.listof.symbols then
+        if doc.frontmatter.glossary.symbols.nocite then tex.print([=[\glsaddall[types=main]]=]) end
+        tex.print([=[\printglossary[title={Lista de Símbolos}]]=])
     end
-    if project.frontmatter.toc then
-        tex.sprint("\\tableofcontents")
+    if doc.frontmatter.toc then
+        tex.print([[\tableofcontents]])
     end
 end
